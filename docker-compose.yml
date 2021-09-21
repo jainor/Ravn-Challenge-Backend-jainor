@@ -21,7 +21,7 @@ services:
           - ./scripts/scriptdb.sql:/docker-entrypoint-initdb.d/create_tables.sql
     web:
         container_name: webb
-       build:
+        build:
             context: .
             dockerfile: ./build/endpoint/Dockerfile
         ports:
