@@ -75,7 +75,7 @@ func (Pm PsqlManager) ConnectionStr() string {
 
 //QueryStr returns the query string we are interested
 func (Pm PsqlManager) QueryStr() string {
-	return "select * from authors"
+	return "select * from authors order by date_of_birth limit %d"
 }
 
 // Name returns the database manager name

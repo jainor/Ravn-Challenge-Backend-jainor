@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	 "fmt"
 	"log"
 	"strconv"
 	"time"
@@ -24,7 +25,8 @@ type DBModel struct {
 
 func (m DBModel) QueryDB(n int) []dbent.Author {
 	registers := make([]dbent.Author, 0)
-	rows, _ := m.DB.Query(m.Manager.QueryStr())
+  strQuery := fmt.Sprintf(m.Manager.QueryStr(),n)
+	rows, _ := m.DB.Query(strQuery)
 
 	for rows.Next() {
 		var id, name, date string
