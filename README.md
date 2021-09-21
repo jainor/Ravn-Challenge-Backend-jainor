@@ -107,6 +107,7 @@ To use the Api endpoint, execute
    curl localhost:8080/authors?count=<number>
    ```
 
+The Kubernets' part is currently under development
 
 
 <!-- LICENSE -->
