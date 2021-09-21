@@ -1,0 +1,7 @@
+{
+    "Host": "amqp",
+    "Port": "5672",
+    "User": "guest",
+    "Password": "guest",
+    "Name": "messagebroker"
+}
