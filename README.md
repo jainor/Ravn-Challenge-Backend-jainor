@@ -106,6 +106,7 @@ To use the Api endpoint, execute
  ```sh
    curl localhost:8080/authors?count=<number>
    ```
+The sql queries are commented in the last part of archive [https://github.com/jainor/Ravn-Challenge-Backend-jainor/blob/main/internal/db/psqlmanager.go] (https://github.com/jainor/Ravn-Challenge-Backend-jainor/blob/main/internal/db/psqlmanager.go)
 
 The Kubernets' part is currently under development
 

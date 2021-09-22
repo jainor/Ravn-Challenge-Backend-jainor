@@ -72,10 +72,27 @@ func (Pm PsqlManager) ConnectionStr() string {
 			"dbname=%s sslmode=disable",
 		Pm.credentials.Host, Pm.credentials.Port, Pm.credentials.User, Pm.credentials.Password, Pm.credentials.Dbname)
 }
+/*
+Query 1:
+
+select * from authors order by date_of_birth limit 10;
+
+Query 2:
+
+select sum(salesi.item_price * salesi.quantity) from sale_items salesi
+left join books b on salesi.book_id = b.id  left join authors a on b.author_id = a.id where a.name =  'Lorelai Gilmore';
+
+Query 3:
+
+select a.id, a.name,a.date_of_birth from sale_items salesi left join books b on salesi.book_id = b.id left join  authors a on b.author_id = a.id group by a.id order by sum(salesi.item_price * salesi.quantity) desc limit 10;
+
+
+*/
+
 
 //QueryStr returns the query string we are interested
 func (Pm PsqlManager) QueryStr() string {
-	return "select * from authors order by date_of_birth limit %d"
+  return "select a.id, a.name,a.date_of_birth from sale_items salesi left join books b on salesi.book_id = b.id left join  authors a on b.author_id = a.id group by a.id order by sum(salesi.item_price * salesi.quantity) desc limit %d"
 }
 
 // Name returns the database manager name
