@@ -188,25 +188,46 @@ kubectl apply -f k8s/persistentvolume.yaml
 kubectl apply -f k8s/postgres.yaml
    ```
 
-check the state of the deployments
+check the state of the deployments:
 
  ```sh
 kubectl get deploy -o wide
    ```
 
+and the status of the pods:
+
+ ```sh
+kubectl get pods -o wide
+   ```
+
 Note that you must wait some minutes (30 minutes or less) due to the claim of persistent volume.
 Before this, only the endpoint and messagebroker (rabbitmq) deploys will be ready.
 
-now, we create the services for our deployments:
- ```sh
+To see logs:
 
+ ```sh
+kubectl logs <Name-Pod>
+  ```
+
+Open Postgres database manager and create database
+
+ ```sh
+   kubectl exec -it <Name-Pod-Postgres-Dep> -- psql -U <user>
+   # \psql create database <database>
+   kubectl exec -it <Name-Pod-Postgres-Dep> -- psql -U <user> -d <database>
+   ## create tables and populate database manually with scripts/scriptdb.sql
+   ```
+
+Now, we create the services for our deployments:
+
+ ```sh
 kubectl expose deployment/messagebroker --type=LoadBalancer --name=management --port 15672 --target-port 15672
 kubectl expose deployment/messagebroker --type=LoadBalancer --name=messagebroker --port 5672 --target-port 5672
 kubectl expose deployment/worker --type=ClusterIP --port 5672 --target-port 5672
 kubectl expose deployment/endpoint --type=LoadBalancer --port 80 --target-port 8080
    ```
 
-the service for the Postgres deployment was created in the previous step.
+The service for the Postgres deployment was created in the previous step.
 
 Now our API endpoint is on the web!!!
 
