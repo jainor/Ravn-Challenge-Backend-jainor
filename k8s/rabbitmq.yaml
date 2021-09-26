@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messagebroker
+spec:
+  selector:
+    matchLabels:
+      app: messagebroker
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: messagebroker
+    spec:
+      containers:
+      - name: endpoint
+        image: rabbitmq:management
+        ports:
+        - containerPort: 5672

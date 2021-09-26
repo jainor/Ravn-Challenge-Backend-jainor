@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: endpoint
+spec:
+  selector:
+    matchLabels:
+      app: endpoint
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: endpoint
+    spec:
+      containers:
+      - name: endpoint
+        image: jainor/challenge:latest
+        ports:
+        - containerPort: 8080

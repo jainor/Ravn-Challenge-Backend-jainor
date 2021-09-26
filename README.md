@@ -21,10 +21,12 @@ Simple API endpoint that returns the list of the top authors
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
+    <li><a href="#sql-queries">SQL Queries</a></li>
     <li><a href="#usage">Usage</a></li>
+    <li><a href="#Deploy-with-Google-Kubernetes-Engine"> Deploy with Google Kubernetes Engine</a></li>
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
 
@@ -33,7 +35,26 @@ Simple API endpoint that returns the list of the top authors
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-Project developed as a challengue for RAVN.
+Project developed as a challenge for RAVN.
+
+The deployment of the project was done in GKE.
+
+The current link of the endpoint is:
+
+[http://34.125.185.134/authors?count=3](http://34.125.185.134/authors?count=3)
+
+34.125.185.134 is the External IP of the API service. We also made external the management tool of the messagebroker
+
+[http://34.125.13.114:15672](http://34.125.13.114:15672)
+
+
+Use `guest` in both fields (user and password).
+
+<!-- SQL QUERIES -->
+## SQL Queries
+
+The sql queries are commented in the last part of the archive [https://github.com/jainor/Ravn-Challenge-Backend-jainor/blob/main/internal/db/psqlmanager.go] (https://github.com/jainor/Ravn-Challenge-Backend-jainor/blob/main/internal/db/psqlmanager.go)
+
 
 
 ### Built With
@@ -67,6 +88,9 @@ Script for the database is storage in `scripts` directory.
 
 ### Installation
 
+We show how we generate images and test them. Moreover, we also show to push the images into [Docker Hub Containing Library](https://hub.docker.com/)
+We only push the images that corresponds to the API endpoint and workers.
+
 1. Clone the repo
    ```sh
    git clone https://github.com/jainor/Ravn-Challenge-Backend-jainor
@@ -80,10 +104,8 @@ Script for the database is storage in `scripts` directory.
    docker-compose up
    ```
 
-<!-- USAGE EXAMPLES -->
-## Usage
 
-Once the generated images are running we hace 3 different services running
+Once the generated images are running we have 4 different services running
 
 1. Database
 2. MessageBroker (Rabbit)
@@ -106,10 +128,87 @@ To use the Api endpoint, execute
  ```sh
    curl localhost:8080/authors?count=<number>
    ```
-The sql queries are commented in the last part of archive [https://github.com/jainor/Ravn-Challenge-Backend-jainor/blob/main/internal/db/psqlmanager.go] (https://github.com/jainor/Ravn-Challenge-Backend-jainor/blob/main/internal/db/psqlmanager.go)
 
-The Kubernets' part is currently under development
+Once we test the local deployment works correctly.
+We create the images for the API endpoint and workers.
+Please create an account in [Docker Hub Containing Library](https://hub.docker.com/) to push the image.
 
+ ```sh
+   docker ps
+   docker container commit  <ContainerID>  jainor/challenge:latest
+   docker login
+   docker push jainor/challenge:latest
+   ```
+
+Now, any developer can use your image!!
+
+<!-- USAGE EXAMPLES -->
+## Deploy with Google Kubernetes Engine
+
+Download kubectl and gcloutoon your computer.
+
+Before deploy our services in GKE, we must use your gmail account in [Google Cloud](https://cloud.google.com), we must use the free trial to use GKE.
+We have to activate GKE option.
+
+We start by configuring gcloud locally and creating a project
+ ```sh
+gcloud init
+gcloud  projects create jainor-ravn --name="jainor ravn"
+   ```
+
+create a cluster and configure credentials for kubectl
+ ```sh
+gcloud  container clusters create cluster-jainor
+gcloud  container clusters get-credentials  cluster-jainor
+   ```
+
+Make sure your region is configured in init, or setup on  [Google Cloud](https://cloud.google.com), to create the cluster with the instruccion above.
+
+We are ready to work with kubectl in our cluster!!!
+
+First, check the current cluster
+
+ ```sh
+kubectl config current-context
+   ```
+
+Now we have to setup the registry of Docker hub in kubernetes (to use images),
+
+ ```sh
+kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/ --docker-username=<user> --docker-password=<password> --docker-email=<email>
+   ```
+
+We create the deployments in folder `k8s`
+
+ ```sh
+kubectl apply -f k8s/endpoint.yaml
+kubectl apply -f k8s/rabbitmq.yaml
+kubectl apply -f k8s/worker.yaml
+kubectl apply -f k8s/persistentvolume.yaml
+kubectl apply -f k8s/postgres.yaml
+   ```
+
+check the state of the deployments
+
+ ```sh
+kubectl get deploy -o wide
+   ```
+
+Note that you must wait some minutes (30 minutes or less) due to the claim of persistent volume.
+Before this, only the endpoint and messagebroker (rabbitmq) deploys will be ready.
+
+now, we create the services for our deployments:
+ ```sh
+
+kubectl expose deployment/messagebroker --type=LoadBalancer --name=management --port 15672 --target-port 15672
+kubectl expose deployment/messagebroker --type=LoadBalancer --name=messagebroker --port 5672 --target-port 5672
+kubectl expose deployment/worker --type=ClusterIP --port 5672 --target-port 5672
+kubectl expose deployment/endpoint --type=LoadBalancer --port 80 --target-port 8080
+   ```
+
+the service for the Postgres deployment was created in the previous step.
+
+Now our API endpoint is on the web!!!
 
 <!-- LICENSE -->
 ## License
@@ -128,7 +227,7 @@ Project Link: [https://github.com/jainor/Ravn-Challenge-Backend-jainor](https://
 
 
 <!-- ACKNOWLEDGEMENTS -->
-## Acknowledgements
+## Acknowledgments
 
 * [Golang spec](https://golang.org/ref/spec)
 * [RabbitMQ tutorials](https://www.rabbitmq.com/getstarted.html)
