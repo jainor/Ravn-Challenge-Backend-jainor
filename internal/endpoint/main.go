@@ -16,15 +16,22 @@ import (
 )
 
 const page = "/authors"
+const hellopage = "/hello"
 const paramName = "count"
 
 func main() {
 
 	router := gin.Default()
 	router.GET(page, getAuthors)
+	router.GET(hellopage,getHello)
 	//router.Run("localhost:8080")
 
 	router.Run()
+}
+// getHello return a Hello message
+func getHello(c *gin.Context) {
+	c.IndentedJSON(http.StatusOK, "{hello with kubernetes}")
+	return
 }
 
 // getAuthors responds with the list of all authors as JSON.
