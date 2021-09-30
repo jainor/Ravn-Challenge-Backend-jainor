@@ -14,6 +14,17 @@ spec:
     spec:
       containers:
       - name: endpoint
-        image: jainor/challenge:latest
+        image: jainor/challenge:1.2
+        env: 
+        - name: mq_host
+          value: amqp
+        - name: mq_port
+          value: "5672"
+        - name: mq_user
+          value: guest
+        - name: mq_password
+          value: guest
+        - name: name
+          value: messagebroker
         ports:
         - containerPort: 8080

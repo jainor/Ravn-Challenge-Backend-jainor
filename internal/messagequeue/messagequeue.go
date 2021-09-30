@@ -3,6 +3,7 @@ package messagequeue
 import (
 	"fmt"
 	"os"
+	"sync"
 
 	"encoding/json"
 	"log"
@@ -17,6 +18,16 @@ import (
 )
 
 //var conn *amqp.Connection
+
+// rabbitVarEnv stores the names of the variables that stores the credentials for rabbit
+type rabbitVarEnv struct {
+	Host     string
+	Port     string
+	User     string
+	Password string
+	Name     string
+}
+
 
 // RabbitCredentials stores Rabbitmq credentials for connections
 type RabbitCredentials struct {
@@ -33,7 +44,7 @@ func loadConfig() RabbitCredentials {
 	return loadConfigFile(configPath)
 }
 func loadConfigFile(filename string) RabbitCredentials {
-	var config RabbitCredentials
+	var config rabbitVarEnv
 	configFile, err := os.Open(filename)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -42,30 +53,49 @@ func loadConfigFile(filename string) RabbitCredentials {
 
 	jsonParser := json.NewDecoder(configFile)
 	jsonParser.Decode(&config)
-	return config
+	return getVarEnv(config)
+}
+
+func getVar(k string, v* string){
+  *v = os.Getenv(k)
+  if( *v == ""){
+    log.Fatal("Environment var " + k + " not set!")
+    }
+}
+
+func getVarEnv(pvar rabbitVarEnv) RabbitCredentials{
+  var host, port, user, password, name string
+
+  getVar(pvar.Host, &host)
+  getVar(pvar.Port, &port)
+  getVar(pvar.User, &user)
+  getVar(pvar.Password, &password)
+  getVar(pvar.Name, &name)
+
+  return RabbitCredentials{
+    Host:host,
+    Port:port,
+    User:user,
+    Password:password,
+    Name:name,
+  }
 }
 
 var cred RabbitCredentials
+var once sync.Once 
 
-func init() {
-	cred = loadConfig()
+func GetManager() *RabbitCredentials {
+    once.Do(func() {
+	      cred = loadConfig()
+    })
+    return &cred
 }
 
 func (rc RabbitCredentials) strConn() string {
 	connstr := fmt.Sprintf("%s://%s:%s@%s:%s/",
-		cred.Host, cred.User, cred.Password, cred.Name, cred.Port)
+		rc.Host, rc.User, rc.Password, rc.Name, rc.Port)
 	return connstr
 }
-
-/*
-func init(){
-  cred:= loadConfig()
-  connstr := fmt.Sprintf("%s://%s:%s@%s:%s/",
-  cred.Host, cred.User, cred.Password, cred.Name, cred.Port   )
-  var err error
-  conn, err = amqp.Dial(connstr)
-	failOnError(err, "Failed to connect to RabbitMQ")
-}*/
 
 func failOnError(err error, msg string) {
 	if err != nil {
@@ -88,7 +118,7 @@ func randomString(l int) string {
 // SendMessage sends a message to Rabbitmq server and returns a result via RPC
 func SendMessage(n int) ([]byte, error) {
 
-	conn, err := amqp.Dial(cred.strConn())
+	conn, err := amqp.Dial(GetManager().strConn())
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 	return sendMessageToConn(n, conn)
@@ -97,10 +127,6 @@ func SendMessage(n int) ([]byte, error) {
 func sendMessageToConn(n int, conn *amqp.Connection) ([]byte, error) {
 
 	corrId := randomString(32)
-
-	//conn, err := amqp.Dial(cred.strConn() )
-	//failOnError(err, "Failed to connect to RabbitMQ")
-	//defer conn.Close()
 
 	ch, err := conn.Channel()
 	failOnError(err, "Failed to open a channel")
@@ -160,7 +186,7 @@ func sendMessageToConn(n int, conn *amqp.Connection) ([]byte, error) {
 // ResponseMessage responds the messages waiting
 func ResponseMessage(m idb.ModelQ) {
 
-	conn, err := amqp.Dial(cred.strConn())
+	conn, err := amqp.Dial(GetManager().strConn())
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 	responseMessageToConn(m, conn)
@@ -168,10 +194,6 @@ func ResponseMessage(m idb.ModelQ) {
 
 func responseMessageToConn(m idb.ModelQ, conn *amqp.Connection) {
 	log.Println(" [*] Awaiting RPC requests")
-
-	//conn, err := amqp.Dial(cred.strConn() )
-	//failOnError(err, "Failed to connect to RabbitMQ")
-	//defer conn.Close()
 
 	ch, err := conn.Channel()
 	failOnError(err, "Failed to open a channel")

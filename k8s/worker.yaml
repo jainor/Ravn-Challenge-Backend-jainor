@@ -14,4 +14,25 @@ spec:
     spec:
       containers:
       - name: worker
-        image: jainor/worker:latest
+        image: jainor/worker:1.2
+        env: 
+        - name: mq_host
+          value: amqp
+        - name: mq_port
+          value: "5672"
+        - name: mq_user
+          value: guest
+        - name: mq_password
+          value: guest
+        - name: name
+          value: messagebroker
+        - name: db_host
+          value: postgres
+        - name: db_port
+          value: "5432"
+        - name: db_user
+          value: postgres
+        - name: db_password
+          value: postgres
+        - name: db_name
+          value: testdb

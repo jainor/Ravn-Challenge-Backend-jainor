@@ -31,6 +31,8 @@ services:
             - "8080"
         depends_on:
             - postgres
+        env_file:
+            - .env
     messagebroker:
         image: rabbitmq:management
         container_name: message-broke
@@ -38,6 +40,8 @@ services:
             - "5672:5672" # for sender and consumer connections
             - "15672:15672" # for serve RabbitMQ GUI
         restart: always
+        env_file:
+            - .env
     workerapp:
         container_name: worker
         build:
@@ -46,4 +50,6 @@ services:
         restart: unless-stopped
         depends_on:
             - messagebroker
+        env_file:
+            - .env
 

@@ -4,11 +4,22 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"log"
+  "sync"
 
 	_ "github.com/lib/pq"
 )
 
-//PsqlCredentials stores the credentials to open a db connection
+//PsqlCredentials stores the name of the env variables that stoers credentials to open a db connection
+type psqlVarEnv struct {
+	Host     string
+	Port     string
+	User    string
+	Password string
+	Dbname   string
+}
+
+//PsqlCredentials stores the name of the credentials to open a db connection
 type PsqlCredentials struct {
 	Host     string
 	Port     string
@@ -19,22 +30,27 @@ type PsqlCredentials struct {
 
 const configPath = "../../configs/postgresconfig.json"
 
-//const configPath = "./configs/postgresconfig.json"
-
 // PsqlManager implements methods of interface DBManager
 type PsqlManager struct {
 	name        string
 	credentials PsqlCredentials
 }
 
-var Pm = PsqlManager{credentials: loadConfig()}
+//singleton pattern
+var pm  *PsqlManager
+var once sync.Once
 
-func GetManager() DBManager {
-	return Pm
+// GetManager return the instance of the DBManager
+func GetManager() *PsqlManager {
+    once.Do(func() {
+        pm = &PsqlManager{
+            credentials : loadConfig()}
+    })
+    return pm
 }
 
 func loadConfigFile(filename string) PsqlCredentials {
-	var config PsqlCredentials
+	var config psqlVarEnv
 	configFile, err := os.Open(filename)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -43,23 +59,38 @@ func loadConfigFile(filename string) PsqlCredentials {
 
 	jsonParser := json.NewDecoder(configFile)
 	jsonParser.Decode(&config)
-	return config
+	return getVarsEnv(config)
+}
+
+func getVar(k string, v* string){
+  *v = os.Getenv(k)
+  if( *v == ""){
+    log.Fatal("Environment var " + k + " not set!")
+  }
+}
+
+func getVarsEnv(pvar psqlVarEnv) PsqlCredentials{
+  var host, port, user, password, dbname string
+
+  getVar(pvar.Host, &host)
+  getVar(pvar.Port, &port)
+  getVar(pvar.User, &user)
+  getVar(pvar.Password, &password)
+  getVar(pvar.Dbname, &dbname)
+
+  return PsqlCredentials{
+    Host:host,
+    Port:port,
+    User:user,
+    Password:password,
+    Dbname:dbname,
+  }
 }
 
 func loadConfig() PsqlCredentials {
 	return loadConfigFile(configPath)
 }
 
-/*
-
-func GetManager() *PsqlManager {
-    sync.once.Do(func() {
-
-        pm = &PsqlCredentials{}
-    })
-    return pm
-}
-*/
 
 
 // ConnectionStr returns the connection string to connect with db

@@ -1,7 +1,7 @@
 {
-    "Host": "amqp",
-    "Port": "5672",
-    "User": "guest",
-    "Password": "guest",
-    "Name": "messagebroker"
+    "Host": "mq_host",
+    "Port": "mq_port",
+    "User": "mq_user",
+    "Password": "mq_password",
+    "Name": "mq_name"
 }

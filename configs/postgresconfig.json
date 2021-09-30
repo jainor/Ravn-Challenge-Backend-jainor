@@ -1,7 +1,7 @@
 {
-    "Host": "postgres",
-    "Port": "5432",
-    "User": "postgres",
-    "Password": "postgres",
-    "Dbname": "testdb"
+    "Host": "db_host",
+    "Port": "db_port",
+    "User": "db_user",
+    "Password": "db_password",
+    "Dbname": "db_name"
 }
