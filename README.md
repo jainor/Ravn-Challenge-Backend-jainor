@@ -82,7 +82,9 @@ This is an example of how to list things you need to use the software and how to
   
 ### Config
 
-Information related to Config credentials for Database and MessageBroker (RabbitMQ) are storage in `build` directory.
+The name of environment variables  for database and messagebroker (RabbitMQ) credentials are storage in `config` directory.
+The values should be setted before, read `.env` file to see an example.
+
 
 Script for the database is storage in `scripts` directory.
 
