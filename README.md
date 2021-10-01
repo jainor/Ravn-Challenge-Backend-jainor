@@ -178,9 +178,19 @@ Now we have to setup the registry of Docker hub in kubernetes (to use images),
 
  ```sh
 kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/ --docker-username=<user> --docker-password=<password> --docker-email=<email>
-   ```
 
-We create the deployments in folder `k8s`
+First, we create the configmaps and secrets for envinroment variables.
+In the case of secrets, the value of env vars should be generated in the following way:
+ ```sh
+ echo -n '<value>' | base64
+   ```
+And then, copy into secrets.yaml. After that, we create configmaps and environment 
+
+ ```sh
+kubectl apply -f k8s/secrets.yaml
+kubectl apply -f k8s/configmap.yaml
+
+Later, we create the deployments in folder `k8s`
 
  ```sh
 kubectl apply -f k8s/endpoint.yaml
